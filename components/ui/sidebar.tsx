@@ -199,23 +199,27 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
 	const { toggleSidebar } = useSidebar();
 
 	return (
-		<GlassSurface className="aspect-square">
-			<span
-				data-sidebar="trigger"
-				data-slot="sidebar-trigger"
-				variant="ghost"
-				size="icon"
-				className={cn("size-12 items-center justify-center flex", className)}
-				onClick={(event) => {
-					// onClick?.(event);
-					toggleSidebar();
-				}}
-				{...props}>
-				<PanelLeftIcon className="h-5 w-5" />
-				<span className="sr-only">Toggle Sidebar</span>
-			</span>
-		</GlassSurface>
-	);
+    <GlassSurface className="aspect-square hover:cursor-pointer">
+      <span
+        data-sidebar="trigger"
+        data-slot="sidebar-trigger"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "flex size-12 items-center justify-center",
+          className,
+        )}
+        onClick={(event) => {
+          // onClick?.(event);
+          toggleSidebar();
+        }}
+        {...props}
+      >
+        <PanelLeftIcon className="h-5 w-5" />
+        <span className="sr-only">Toggle Sidebar</span>
+      </span>
+    </GlassSurface>
+  );
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {

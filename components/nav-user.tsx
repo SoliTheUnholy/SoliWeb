@@ -36,7 +36,7 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu dir="rtl" >
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -57,8 +57,8 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={"right"}
-            align="end"
+            side={"top"}
+            align="start"
             sideOffset={0}
           >
             <DropdownMenuLabel className="p-0 font-normal">
