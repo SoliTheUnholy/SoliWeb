@@ -12,7 +12,7 @@ export default function Container({
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--sidebar-width": "calc(var(--spacing) * 64)",
           "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
@@ -20,7 +20,7 @@ export default function Container({
       <AppSidebar variant="inset" />
       <SidebarInset className="@container/main grow grid overflow-clip rounded-4xl">
         <SiteHeader />
-        <div className="bg-background w-full transition-all duration-500">
+        <div className="bg-background w-full absolute overflow-clip md:min-w-96 min-w-screen transition-all duration-500">
           {children}
         </div>
       </SidebarInset>
