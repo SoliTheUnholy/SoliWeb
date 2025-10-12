@@ -1,8 +1,5 @@
 import GlassSurface from "@/components/glass-surface/glass-surface";
-import FaultyTerminal from "@/components/home/faulty-terminal";
 import PrismaticBurst from "@/components/home/prismatic-burst";
-import Silk from "@/components/silk/silk";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (

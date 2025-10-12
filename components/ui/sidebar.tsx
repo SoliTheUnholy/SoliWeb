@@ -199,7 +199,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
 	const { toggleSidebar } = useSidebar();
 
 	return (
-    <GlassSurface className="aspect-square hover:cursor-pointer">
+    <GlassSurface className="aspect-square !w-12 h-12 hover:cursor-pointer">
       <span
         data-sidebar="trigger"
         data-slot="sidebar-trigger"

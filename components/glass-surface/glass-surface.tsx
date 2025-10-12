@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState, useId } from "react";
+import React, { useEffect, useRef, useState, useId, useCallback } from "react";
 
 export interface GlassSurfaceProps {
   children?: React.ReactNode;
@@ -62,21 +62,21 @@ const useDarkMode = () => {
 const GlassSurface: React.FC<GlassSurfaceProps> = ({
   children,
   width = "full",
-  height = 48,
+  height = "full",
   borderRadius = 24,
-  borderWidth = 0.07,
-  brightness = 50,
-  opacity = 0.93,
-  blur = 11,
+  borderWidth = 0.05,
+  brightness = 33,
+  opacity = 1,
+  blur = 12,
   displace = 0,
   backgroundOpacity = 0,
-  saturation = 1,
+  saturation = 1.25,
   distortionScale = -180,
-  redOffset = 0,
+  redOffset = 10,
   greenOffset = 10,
   blueOffset = 20,
   xChannel = "R",
-  yChannel = "G",
+  yChannel = "B",
   mixBlendMode = "difference",
   className = "",
   style = {},
@@ -125,9 +125,9 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     return `data:image/svg+xml,${encodeURIComponent(svgContent)}`;
   };
 
-  const updateDisplacementMap = () => {
+  const updateDisplacementMap = useCallback(() => {
     feImageRef.current?.setAttribute("href", generateDisplacementMap());
-  };
+  }, []);
 
   useEffect(() => {
     updateDisplacementMap();
@@ -163,6 +163,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     xChannel,
     yChannel,
     mixBlendMode,
+    updateDisplacementMap,
   ]);
 
   useEffect(() => {
@@ -177,7 +178,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [updateDisplacementMap]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -191,31 +192,18 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [updateDisplacementMap]);
 
   useEffect(() => {
     setTimeout(updateDisplacementMap, 0);
-  }, [width, height]);
+  }, [width, height, updateDisplacementMap]);
 
-  // const supportsSVGFilters = () => {
-  //   const isWebkit =
-  //     /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-  //   const isFirefox = /Firefox/.test(navigator.userAgent);
+  const glassSurfaceClasses =
+    "inline-flex relative flex w-full items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out items-center hover:cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50   focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive";
 
-  //   if (isWebkit || isFirefox) {
-  //     return false;
-  //   }
-
-  //   const div = document.createElement("div");
-  //   div.style.backdropFilter = `url(#${filterId})`;
-  //   return div.style.backdropFilter !== "";
-  // };
-
-  const supportsBackdropFilter = () => {
-    if (typeof window === "undefined") return false;
-    return CSS.supports("backdrop-filter", "blur(10px)");
-  };
-
+  const focusVisibleClasses = isDarkMode
+    ? "focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2"
+    : "focus-visible:outline-2 focus-visible:outline-[#007AFF] focus-visible:outline-offset-2";
   const getContainerStyles = (): React.CSSProperties => {
     const baseStyles: React.CSSProperties = {
       ...style,
@@ -226,15 +214,11 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       "--glass-saturation": saturation,
     } as React.CSSProperties;
 
-    // const svgSupported = supportsSVGFilters();
-    // const backdropFilterSupported = supportsBackdropFilter();
-
-    // if (svgSupported) {
     return {
       ...baseStyles,
       background: isDarkMode
-        ? `hsl(0 0% 0% / ${backgroundOpacity})`
-        : `hsl(0 0% 100% / ${backgroundOpacity})`,
+        ? `hsl(0 0% 100% / ${backgroundOpacity})`
+        : `hsl(0 0% 0% / ${backgroundOpacity})`,
       backdropFilter: `url(#${filterId}) saturate(${saturation})`,
       boxShadow: isDarkMode
         ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
@@ -254,60 +238,107 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
              0px 8px 24px rgba(17, 17, 26, 0.05) inset,
              0px 16px 56px rgba(17, 17, 26, 0.05) inset`,
     };
-    // } else {
-    //   if (isDarkMode) {
-    //     if (!backdropFilterSupported) {
-    //       return {
-    //         ...baseStyles,
-    //         background: "rgba(0, 0, 0, 0.4)",
-    //         border: "1px solid rgba(255, 255, 255, 0.2)",
-    //         boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-    //                     inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`,
-    //       };
-    //     } else {
-    //       return {
-    //         ...baseStyles,
-    //         background: "rgba(255, 255, 255, 0.1)",
-    //         backdropFilter: "blur(12px) saturate(1.8) brightness(1.2)",
-    //         WebkitBackdropFilter: "blur(12px) saturate(1.8) brightness(1.2)",
-    //         border: "1px solid rgba(255, 255, 255, 0.2)",
-    //         boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-    //                     inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`,
-    //       };
-    //     }
-    //   } else {
-    //     if (!backdropFilterSupported) {
-    //       return {
-    //         ...baseStyles,
-    //         background: "rgba(255, 255, 255, 0.4)",
-    //         border: "1px solid rgba(255, 255, 255, 0.3)",
-    //         boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-    //                     inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`,
-    //       };
-    //     } else {
-    //       return {
-    //         ...baseStyles,
-    //         background: "rgba(255, 255, 255, 0.25)",
-    //         backdropFilter: "blur(12px) saturate(1.8) brightness(1.1)",
-    //         WebkitBackdropFilter: "blur(12px) saturate(1.8) brightness(1.1)",
-    //         border: "1px solid rgba(255, 255, 255, 0.3)",
-    //         boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
-    //                     0 2px 16px 0 rgba(31, 38, 135, 0.1),
-    //                     inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-    //                     inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`,
-    //       };
-    //     }
-    //   }
-    // }
   };
+  // useEffect(() => {
+  //   const supportsSVGFilters = () => {
+  //     const isWebkit =
+  //       /Safari/.test(navigator.userAgent) &&
+  //       !/Chrome/.test(navigator.userAgent);
+  //     const isFirefox = /Firefox/.test(navigator.userAgent);
 
-  const glassSurfaceClasses =
-    "relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out";
+  //     if (isWebkit || isFirefox) {
+  //       return false;
+  //     }
 
-  const focusVisibleClasses = isDarkMode
-    ? "focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2"
-    : "focus-visible:outline-2 focus-visible:outline-[#007AFF] focus-visible:outline-offset-2";
+  //     const div = document.createElement("div");
+  //     div.style.backdropFilter = `url(#${filterId})`;
+  //     return div.style.backdropFilter !== "";
+  //   };
+  //   getContainerStyles = (): React.CSSProperties => {
+  //     const baseStyles: React.CSSProperties = {
+  //       ...style,
+  //       width: typeof width === "number" ? `${width}px` : width,
+  //       height: typeof height === "number" ? `${height}px` : height,
+  //       borderRadius: `${borderRadius}px`,
+  //       "--glass-frost": backgroundOpacity,
+  //       "--glass-saturation": saturation,
+  //     } as React.CSSProperties;
 
+  //     const svgSupported = supportsSVGFilters();
+  //     const backdropFilterSupported = supportsBackdropFilter();
+
+  //     if (svgSupported) {
+  //       return {
+  //         ...baseStyles,
+  //         background: isDarkMode
+  //           ? `hsl(0 0% 0% / ${backgroundOpacity})`
+  //           : `hsl(0 0% 100% / ${backgroundOpacity})`,
+  //         backdropFilter: `url(#${filterId}) saturate(${saturation})`,
+  //         boxShadow: isDarkMode
+  //           ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
+  //            0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
+  //            0px 4px 16px rgba(17, 17, 26, 0.05),
+  //            0px 8px 24px rgba(17, 17, 26, 0.05),
+  //            0px 16px 56px rgba(17, 17, 26, 0.05),
+  //            0px 4px 16px rgba(17, 17, 26, 0.05) inset,
+  //            0px 8px 24px rgba(17, 17, 26, 0.05) inset,
+  //            0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+  //           : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
+  //            0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
+  //            0px 4px 16px rgba(17, 17, 26, 0.05),
+  //            0px 8px 24px rgba(17, 17, 26, 0.05),
+  //            0px 16px 56px rgba(17, 17, 26, 0.05),
+  //            0px 4px 16px rgba(17, 17, 26, 0.05) inset,
+  //            0px 8px 24px rgba(17, 17, 26, 0.05) inset,
+  //            0px 16px 56px rgba(17, 17, 26, 0.05) inset`,
+  //       };
+  //     } else {
+  //       if (isDarkMode) {
+  //         if (!backdropFilterSupported) {
+  //           return {
+  //             ...baseStyles,
+  //             background: "rgba(0, 0, 0, 0.4)",
+  //             border: "1px solid rgba(255, 255, 255, 0.2)",
+  //             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+  //                       inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`,
+  //           };
+  //         } else {
+  //           return {
+  //             ...baseStyles,
+  //             background: "rgba(255, 255, 255, 0.1)",
+  //             backdropFilter: "blur(12px) saturate(1.8) brightness(1.2)",
+  //             WebkitBackdropFilter: "blur(12px) saturate(1.8) brightness(1.2)",
+  //             border: "1px solid rgba(255, 255, 255, 0.2)",
+  //             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+  //                       inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`,
+  //           };
+  //         }
+  //       } else {
+  //         if (!backdropFilterSupported) {
+  //           return {
+  //             ...baseStyles,
+  //             background: "rgba(255, 255, 255, 0.4)",
+  //             border: "1px solid rgba(255, 255, 255, 0.3)",
+  //             boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+  //                       inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`,
+  //           };
+  //         } else {
+  //           return {
+  //             ...baseStyles,
+  //             background: "rgba(255, 255, 255, 0.25)",
+  //             backdropFilter: "blur(12px) saturate(1.8) brightness(1.1)",
+  //             WebkitBackdropFilter: "blur(12px) saturate(1.8) brightness(1.1)",
+  //             border: "1px solid rgba(255, 255, 255, 0.3)",
+  //             boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
+  //                       0 2px 16px 0 rgba(31, 38, 135, 0.1),
+  //                       inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+  //                       inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`,
+  //           };
+  //         }
+  //       }
+  //     }
+  //   };
+  // }, []);
   return (
     <div
       ref={containerRef}
@@ -398,7 +429,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
           </filter>
         </defs>
       </svg>
-      <div className="focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-4xl text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+      <div className="focus-visible:border-ring text-foreground focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive relative z-10 inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-4xl text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
         {children}
       </div>
     </div>

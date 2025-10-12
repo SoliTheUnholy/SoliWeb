@@ -10,7 +10,7 @@ export function ThemeToggle() {
 	const { setTheme, theme } = useTheme();
 
 	return (
-    <GlassSurface className="aspect-square hover:cursor-pointer">
+    <GlassSurface className="aspect-square h-12 !w-12 hover:cursor-pointer">
       <div
         className="relative flex size-12 items-center justify-center"
         onClick={() => {
